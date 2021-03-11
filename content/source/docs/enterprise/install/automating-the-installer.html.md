@@ -3,7 +3,7 @@ layout: "enterprise"
 page_title: "Automated Installation - Install and Config - Terraform Enterprise"
 ---
 
-# Automated Terraform Enterprise Installation — Individual Instance
+# Automated Terraform Enterprise Installation
 
 The installation of Terraform Enterprise can be automated for both online and airgapped installs. There are two parts to automating the install: configuring [Replicated](https://help.replicated.com/) -- the platform which runs Terraform Enterprise -- and configuring Terraform Enterprise itself.
 
@@ -20,11 +20,11 @@ This document expects that the user is already familiar with how to do a [manual
 
 ## Application settings
 
-This file contains the values you would normally provide in the settings screen, which may be as simple as choosing the demo installation type or as complex as specifying the PostgreSQL connection string and S3 bucket credentials and parameters. You need to create this file first since it is referenced in the `ImportSettingsFrom` property in `/etc/replicated.conf`, which will be described below.
+This file contains the values you would normally provide in the settings screen, which may be as simple as choosing the *Demo* installation type or as complex as specifying the PostgreSQL connection string and S3 bucket credentials and parameters. You need to create this file first since it is referenced in the `ImportSettingsFrom` property in `/etc/replicated.conf`, which will be described below.
 
 ### Format
 
-The settings file is JSON formatted. All values must be strings.  The example below is suitable for a demo installation:
+The settings file is JSON formatted. All values must be strings.  The example below is suitable for a *Demo* installation:
 
 ```json
 {
@@ -34,8 +34,8 @@ The settings file is JSON formatted. All values must be strings.  The example be
     "installation_type": {
         "value": "poc"
     },
-    "capacity_concurrency": {
-        "value": "5"
+    "enc_password": {
+        "value": "CHANGEME"
     }
 }
 ```
@@ -60,8 +60,8 @@ $ python -m json.tool settings.json
     "installation_type": {
         "value": "poc"
     },
-    "capacity_concurrency": {
-        "value": "5"
+    "enc_password": {
+        "value": "CHANGEME"
     }
 }
 ```
@@ -75,14 +75,14 @@ One the easiest ways to get the settings is to [perform a manual install](./inst
 To extract the settings as JSON, access the instance via SSH, then run:
 
 ```
-ptfe$ replicatedctl app-config export > settings.json
+tfe$ replicatedctl app-config export > settings.json
 ```
 
-Here is an example `app-config export` output for an instance configured in demo mode:
+Here is an example `app-config export` output for an instance configured in *Demo* mode:
 
 ```
-ptfe$ replicatedctl app-config export > settings.json
-ptfe$ cat settings.json
+tfe$ replicatedctl app-config export > settings.json
+tfe$ cat settings.json
 {
     "aws_access_key_id": {},
     "aws_instance_profile": {},
@@ -98,6 +98,9 @@ ptfe$ cat settings.json
         "value": "hashicorp/build-worker:now"
     },
     "disk_path": {},
+    "enc_password": {
+        "value": "CHANGEME"
+    }
     "extern_vault_addr": {},
     "extern_vault_enable": {},
     "extern_vault_path": {},
@@ -109,7 +112,7 @@ ptfe$ cat settings.json
     "gcs_credentials": {},
     "gcs_project": {},
     "hostname": {
-        "value": "tfe.mycompany.com"
+        "value": "terraform.example.com"
     },
     "installation_type": {
         "value": "poc"
@@ -144,13 +147,14 @@ The following settings apply to every installation:
 
 - `hostname` — (Required) The hostname you will use to access your installation.
 - `installation_type` — (Required) One of `poc` or `production`.
-- `enc_password` — Set the [encryption password](./encryption-password.html) for the install
+- `enc_password` — (Required) The [password](./encryption-password.html) used to encrypt and decrypt the internally-managed Vault unseal key and root token. Not required only when opting out of internally-managed Vault.
 - `capacity_concurrency` — number of concurrent plans and applies; defaults to `10`.
 - `capacity_memory` — The maximum amount of memory (in megabytes) that a Terraform plan or apply can use on the system; defaults to `512`.
 - `enable_metrics_collection` — Whether Terraform Enterprise's [internal metrics collection](../admin/monitoring.html#internal-monitoring) should be enabled; defaults to `true`.
 - `iact_subnet_list` - A comma-separated list of CIDR masks that configure the ability to retrieve the [IACT](./automating-initial-user.html) from outside the host. For example: 10.0.0.0/24. If not set, no subnets can retrieve the IACT.
 - `iact_subnet_time_limit` - The time limit that requests from the subnets listed can request the [IACT](./automating-initial-user.html), as measured from the instance creation in minutes; defaults to 60.
 - `extra_no_proxy` — (Optional) When configured to use a proxy, a `,` (comma) separated list of hosts to exclude from proxying. Please note that this list does not support whitespace characters. For example: `127.0.0.1,tfe.myapp.com,myco.github.com`.
+- `hairpin_addressing` - When set, TFE services will direct traffic destined for the installation's FQDN toward the instance's internal IP address. This is useful for cloud environments where HTTP clients running on instances behind a load balancer cannot send requests to the public hostname of that load balancer. Defaults to `false`.
 - `ca_certs` — (Optional) Custom certificate authority (CA) bundle. JSON does not allow raw newline characters, so replace any newlines
   in the data with `\n`. For instance:
 
@@ -176,20 +180,21 @@ The following settings apply to every installation:
 - `vault_path` — (Optional) Path on the host system to store the vault files. If `extern_vault_enable` is set, this has no effect.
 - `vault_store_snapshot` — (Optional) Indicate if the vault files should be stored in snapshots. Set to `0` if not. Defaults to `1`.
 
-#### `production_type` is required if you've chosen `production` for the `installation_type`:
+If you have chosen `production` for the `installation_type`, `production_type` is required:
 
 - `production_type` — One of `external` or `disk`.
 
-#### `disk_path` is required if you've chosen `disk` for `production_type`:
+If you have chosen `disk` for `production_type`, `disk_path` is required:
 
 - `disk_path` — Path on instance to persistent storage.
+- `pg_password` — The password for the internal PostgreSQL access. The password will be auto-generated for each installation if not provided.
 
-#### The following settings apply if you want to use an [alternative Terraform build worker image](./installer.html#alternative-terraform-worker-image):
+If you want to use an [alternative Terraform build worker image](./installer.html#alternative-terraform-worker-image), the following settings apply:
 
-- `tbw_image` - Set this to `custom_image` if you want to use an alternative Terraform build worker image. (The default is `default_image`.)
-- `custom_image_tag` - The name and tag for your alternative Terraform build worker image in the format `<name>:<tag>`. (The default is `hashicorp/build-worker:now`.)
+- `tbw_image` - Set this to `custom_image` if you want to use an alternative Terraform build worker image (the default is `default_image`).
+- `custom_image_tag` - The name and tag for your alternative Terraform build worker image in the format `<name>:<tag>` (the default is `hashicorp/build-worker:now`).
 
-#### The following settings apply if you've chosen `external` for `production_type`:
+If you have chosen `external` for `production_type`, the following settings apply:
 
 - `pg_user` — (Required) PostgreSQL user to connect as.
 - `pg_password` — (Required) The password for the PostgreSQL user.
@@ -197,9 +202,9 @@ The following settings apply to every installation:
 - `pg_dbname` — (Required) The database name.
 - `pg_extra_params` — (Optional) Parameter keywords of the form `param1=value1&param2=value2` to support additional options that may be necessary for your specific PostgreSQL server.  Allowed values are [documented on the PostgreSQL site](https://www.postgresql.org/docs/9.4/static/libpq-connect.html#LIBPQ-PARAMKEYWORDS).  An additional restriction on the `sslmode` parameter is that only the `require`, `verify-full`, `verify-ca`, and `disable` values are allowed.
 
-Select which placememt will be used for blob storage: S3, Azure, or GCS. Based on this value, you only need to provide one set of the following variables.
+Select which placement will be used for blob storage: S3, Azure, or GCS. Based on this value, you only need to provide one set of the following variables.
 
-- `placement` — (Required) Set to `placement_s3` for S3, `placement_azure` for Azure, or `placement_gcs` for GCS
+- `placement` — (Required) Set to `placement_s3` for S3, `placement_azure` for Azure, or `placement_gcs` for GCS.
 
 For S3 (or S3-compatible storage providers):
 
@@ -242,7 +247,7 @@ See the full set of configuration parameters in the [Replicated documentation](h
     "TlsBootstrapCert":             "/etc/server.crt",
     "TlsBootstrapKey":              "/etc/server.key",
     "BypassPreflightChecks":        true,
-    "ImportSettingsFrom":           "/path/to/application-settings.json",
+    "ImportSettingsFrom":           "/path/to/settings.json",
     "LicenseFileLocation":          "/path/to/license.rli"
 }
 ```
@@ -273,7 +278,7 @@ The following is an example `/etc/replicated.conf` suitable for an automated air
     "TlsBootstrapCert":                  "/etc/server.crt",
     "TlsBootstrapKey":                   "/etc/server.key",
     "BypassPreflightChecks":             true,
-    "ImportSettingsFrom":                "/path/to/application-settings.json",
+    "ImportSettingsFrom":                "/path/to/settings.json",
     "LicenseFileLocation":               "/path/to/license.rli",
     "LicenseBootstrapAirgapPackagePath": "/path/to/bundle.airgap"
 }
@@ -329,4 +334,3 @@ sudo systemctl start replicated replicated-ui replicated-operator
 - [Replicated installer flags](https://help.replicated.com/docs/distributing-an-application/installing-via-script/#flags)
 - [`/etc/replicated.conf`](https://help.replicated.com/docs/kb/developer-resources/automate-install/#configure-replicated-automatically)
 - [application settings](https://help.replicated.com/docs/kb/developer-resources/automate-install/#configure-app-settings-automatically)
-

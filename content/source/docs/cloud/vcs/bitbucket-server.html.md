@@ -1,6 +1,6 @@
 ---
 layout: "cloud"
-page_title: "Bitbucket Server and Data Center - VCS Providers - Terraform Cloud"
+page_title: "Bitbucket Server and Data Center - VCS Providers - Terraform Cloud and Terraform Enterprise"
 ---
 
 
@@ -10,17 +10,21 @@ These instructions are for using **Bitbucket Server** for Terraform Cloud's VCS 
 
 These instructions also apply to **Bitbucket Data Center,** which is a variant of Bitbucket Server that supports clustering. Terraform Cloud treats these two products identically, and Bitbucket Data Center users will select **Bitbucket Server** as their VCS Provider type. Unless stated otherwise, any reference to Bitbucket Server in this document also applies to Bitbucket Data Center.
 
+Configuring a new VCS provider requires permission to manage VCS settings for the organization. ([More about permissions.](/docs/cloud/users-teams-organizations/permissions.html))
+
+[permissions-citation]: #intentionally-unused---keep-for-maintainers
+
 [Bitbucket Cloud has separate instructions,](./bitbucket-cloud.html) as do the [other supported VCS providers.](./index.html)
 
-Note that Bitbucket Server requires both OAuth authentication and an SSH key. The instructions below include SSH key configuration.
+Note that Bitbucket Server requires both OAuth authentication and an SSH key, both of which are covered in the instructions below.
 
--> **Version note:** Terraform Cloud supports Bitbucket Server versions 4.9.1 and newer, and Bitbucket Data Center versions 5.4.0 and newer. HashiCorp does not test older versions of Bitbucket Server with Terraform Cloud, and they might not work as expected. Also note that, although we do not deliberately remove support for versions that have reached end of life (per the [Atlassian Support End of Life Policy](https://confluence.atlassian.com/support/atlassian-support-end-of-life-policy-201851003.html)), our ability to resolve customer issues with end of life versions might be limited.
+-> **Version note:** Terraform Cloud supports Bitbucket Server and Bitbucket Data Center versions 5.4.0 and above. <br /><br />Support for Bitbucket Server versions between 4.9.1 and 5.3.7 is deprecated. Terraform Cloud currently works with these versions, but will stop supporting them in the near future. <br /><br />HashiCorp does not test older versions of Bitbucket Server with Terraform Cloud, and they might not work as expected. Also note that, although we do not proactively remove support for versions that have reached end of life (per the [Atlassian Support End of Life Policy](https://confluence.atlassian.com/support/atlassian-support-end-of-life-policy-201851003.html)), our ability to resolve customer issues with end of life versions might be limited.
 
 ~> **Important:** Terraform Cloud needs to contact Bitbucket Server over both SSH and HTTP (or HTTPS) during setup and during normal operation. For the SaaS version of Terraform Cloud, this means Bitbucket Server must be internet-accessible on its SSH and HTTP(S) ports; for Terraform Enterprise, you must have network connectivity between your Terraform Enterprise and Bitbucket Server instances. <br /><br /> Note that [Bitbucket Server's default ports](https://confluence.atlassian.com/bitbucketserverkb/which-ports-does-bitbucket-server-listen-on-and-what-are-they-used-for-806029586.html) are 7999 for SSH and 7990 for HTTP; check your configuration to confirm your instance's real ports.
 
 ## Before You Begin: Determine Your Bitbucket Server Version
 
-Terraform Cloud requires support for the delivery of webhooks to perform many operations, including tracking newly available configuration versions. When using Bitbucket Server version 5.3 or lower, Atlassian's webhooks plugin is required to be configured on Bitbucket Server. If using version 5.4 or higher, no plugin is required, as webhooks are supported natively.
+Terraform Cloud requires support for the delivery of webhooks to perform many operations, including tracking newly available configuration versions. When using Bitbucket Server version 5.3 or below (**deprecated**), Atlassian's webhooks plugin is required to be configured on Bitbucket Server. If using version 5.4 or above, no plugin is required, as webhooks are supported natively.
 
 1. Open your Bitbucket server instance in your browser and log in as an admin user.
 2. In the footer of every page is a reference to the instance's current version. **If your version is greater than v5.4.0, you may skip all remaining steps in this section.**
@@ -38,37 +42,39 @@ There is an option to configure a `webhook URL` on the plugin. Leave this option
 
 Leave the page open in a browser tab, and remain logged in as an admin user.
 
-## Step 1: On Terraform Cloud, Add a VCS Provider
+## Step 1: On Terraform Cloud, Begin Adding a New VCS Provider
 
 1. Open Terraform Cloud in your browser and navigate to the "VCS Provider" settings for your organization. Click the "Add VCS Provider" button.
 
     If you just created your organization, you might already be on this page. Otherwise:
 
-    1. Click the upper-left organization menu, making sure it currently shows your organization.
+    1. Make sure the upper-left organization menu currently shows your organization.
     1. Click the "Settings" link at the top of the page (or within the &#9776; menu)
-    1. On the next page, click "VCS Provider" in the left sidebar.
+    1. On the next page, click "VCS Providers" in the left sidebar.
     1. Click the "Add VCS Provider" button.
 
-2. The next page has a drop-down and several text fields. Select "Bitbucket Server" from the drop-down.
+1. The next page has several steps to guide you through adding a new VCS provider. Select "Bitbucket" then select "Bitbucket Server" from the dropdown.
 
-3. (Optional) Enter a display name for your Bitbucket Server VCS Provider.
+1. (Optional) Enter a **Name** for this VCS connection.
 
-4. Enter the URL of your Bitbucket Server instance in the HTTP URL and API URL fields. 
-   
-    If your Bitbucket Server instance does not have a [context path](https://confluence.atlassian.com/bitbucketserver/moving-bitbucket-server-to-a-different-context-path-776640153.html) set, the API URL should be the same as the HTTP URL.
+1. Enter the URL of your Bitbucket Server instance in the **HTTP URL** and **API URL** fields.
 
-    If your Bitbucket Server instance has a [context path](https://confluence.atlassian.com/bitbucketserver/moving-bitbucket-server-to-a-different-context-path-776640153.html) set:
+    ~> **Important:** The values for the **HTTP URL** and **API URL** fields differ depending on whether or not your Bitbucket Server instance has a [context path](https://confluence.atlassian.com/bitbucketserver/moving-bitbucket-server-to-a-different-context-path-776640153.html) set.
+    
+    If your Bitbucket Server instance does not have a context path set, the **API URL** should be the same as the **HTTP URL**.
 
-    1. Set the HTTP URL to the URL of your Bitbucket Server instance with the context path included, `https://<BITBUCKET INSTANCE HOSTNAME>/<CONTEXT PATH>`.
-    1. Set the API URL to the URL of your Bitbucket Server instance **without** the context path, `https://<BITBUCKET INSTANCE HOSTNAME>/`.
+    If your Bitbucket Server instance has a context path set:
 
-    ~> **Note:** If Bitbucket Server isn't accessible on the standard ports (for example, if it's using its default ports of 7990 or 8443 and is not behind a reverse proxy), make sure to specify the port in the URL. If you omit the port in the URL, Terraform Cloud uses the standard port for the protocol (80 for HTTP, 443 for HTTPS).
+    1. Set the **HTTP URL** to the URL of your Bitbucket Server instance with the context path included, `https://<BITBUCKET INSTANCE HOSTNAME>/<CONTEXT PATH>`.
+    1. Set the **API URL** to the URL of your Bitbucket Server instance **without** the context path, `https://<BITBUCKET INSTANCE HOSTNAME>`.
 
-    ![Terraform Cloud screenshot: text fields for adding a Bitbucket Server VCS provider](./images/bitbucket-server-tfe-add-client-fields.png)
+    ~> **Important:** If Bitbucket Server isn't accessible on the standard ports (for example, if it's using its default ports of 7990 or 8443 and is not behind a reverse proxy), make sure to specify the port in the URL. If you omit the port in the URL, Terraform Cloud uses the standard port for the protocol (80 for HTTP, 443 for HTTPS).
 
-6. Click "Create VCS Provider." This will take you back to the VCS Provider page, which now includes your new Bitbucket Server client.
+    ![Terraform Cloud screenshot: text fields for adding a Bitbucket Server VCS provider](./images/bitbucket-server-tfe-add-url-fields.png)
 
-7. Leave this page open in a browser tab. In the next step, you will copy and paste the unique **Consumer Key** and **Public Key.**
+1. Click "Create VCS Provider." This will take you back to the VCS Provider page, which now includes your new Bitbucket Server client.
+
+1. Leave this page open in a browser tab. In the next step, you will copy and paste the unique **Consumer Key** and **Public Key.**
 
     ![Terraform Cloud screenshot: Consumer key and public key](./images/bitbucket-server-tfe-consumer-and-public-key.png)
 
@@ -80,16 +86,16 @@ Leave the page open in a browser tab, and remain logged in as an admin user.
 
     ![Bitbucket Server screenshot: The application links page](./images/bitbucket-server-application-links.png)
 
-2. Enter Terraform Cloud's URL in the text field (`https://app.terraform.io`, or the hostname of your Terraform Enterprise instance) and click the "Create new link" button.
+1. Enter Terraform Cloud's URL in the text field (`https://app.terraform.io`, or the hostname of your Terraform Enterprise instance) and click the "Create new link" button.
 
     ~> **Note:** If you're connecting multiple Terraform Cloud organizations to the same Bitbucket Server instance, you can only use Terraform Cloud's main URL once. For subsequent organizations, you can enter the organization URL instead. Organization URLs look like `https://app.terraform.io/app/<ORG NAME>` or `https://<TFE HOSTNAME>/app/<ORG NAME>` — it's the page Terraform Cloud's "Workspaces" button takes you to.
 
-3. In the "Configure application URL" dialog, confirm that you wish to use the URL exactly as you entered it. If you used Terraform Cloud's main URL, click "Continue;" if you used an organization URL, click the "Use this URL" checkbox and then click "Continue."
+1. In the "Configure application URL" dialog, confirm that you wish to use the URL exactly as you entered it. If you used Terraform Cloud's main URL, click "Continue;" if you used an organization URL, click the "Use this URL" checkbox and then click "Continue."
 
     ![Bitbucket Server screenshot: confirming main URL](./images/bitbucket-server-confirm-url-1.png)
     ![Bitbucket Server screenshot: confirming organization URL](./images/bitbucket-server-confirm-url-2.png)
 
-4. In the "Link applications" dialog, fill out the form fields as follows:
+1. In the "Link applications" dialog, fill out the form fields as follows:
 
     Field                           | Value
     --------------------------------|------------------------------------
@@ -101,9 +107,13 @@ Leave the page open in a browser tab, and remain logged in as an admin user.
 
     ![Bitbucket Server screenshot: filling the first page of the link applications form](./images/bitbucket-server-link-applications-1.png)
 
-5. This takes you to another dialog, also titled "Link applications," with three text fields. In the "Consumer Key" and "Public Key" fields, copy and paste the values from step 2. In the "Consumer Name" field, enter "Terraform Cloud (`<ORG NAME>`)." Click "Continue."
+1. This takes you to another dialog, also titled "Link applications," with three text fields. In the "Consumer Key" and "Public Key" fields, copy and paste the values from step 1. In the "Consumer Name" field, enter "Terraform Cloud (`<ORG NAME>`)." Click "Continue." This takes you to a page on your Bitbucket Server instance, asking if you want to authorize Terraform Cloud. Double-check that you're logged in as the user account Terraform Cloud will be using, and not as a Bitbucket administrator.
 
-    ![Bitbucket Server screenshot: filling the second page of the link applications form](./images/bitbucket-server-link-applications-2.png)
+    ![Bitbucket Server screenshot: the authorization page](./images/bitbucket-server-authorize.png)
+
+    If this results in a 500 error, it usually means Terraform Cloud was unable to reach your Bitbucket Server instance.
+
+1. Click the "Allow" button. This returns you to Terraform Cloud to enter a SSH key.
 
 ## Step 3: On Workstation: Create an SSH Key for Terraform Cloud
 
@@ -120,36 +130,22 @@ This SSH key **must have an empty passphrase.** Terraform Cloud cannot use SSH k
 ## Step 4: On Bitbucket Server, Switch Users and Add an SSH Key
 
 1. If you are still logged in to Bitbucket Server as an administrator, log out now.
-2. Log in as whichever account you want Terraform Cloud to act as. For most organizations this should be a dedicated service user, but a personal account will also work.
+1. Log in as whichever account you want Terraform Cloud to act as. For most organizations this should be a dedicated service user, but a personal account will also work.
 
     ~> **Important:** The account you use for connecting Terraform Cloud **must have admin access** to any shared repositories of Terraform configurations, since creating webhooks requires admin permissions.
 
-3. Go to the "SSH keys" page. You can click the profile icon in the upper right corner, choose "Manage account," then click "SSH keys" in the sidebar navigation, or you can go directly to `https://<BITBUCKET INSTANCE HOSTNAME>/plugins/servlet/ssh/account/keys`.
+1. Go to the "SSH keys" page. You can click the profile icon in the upper right corner, choose "Manage account," then click "SSH keys" in the sidebar navigation, or you can go directly to `https://<BITBUCKET INSTANCE HOSTNAME>/plugins/servlet/ssh/account/keys`.
 
     ![Bitbucket Server sceenshot: the SSH keys page](./images/bitbucket-server-ssh-keys.png)
 
-4. Click the "Add key" button. Paste the text of the **SSH public key** you created in step 4 (from the `.pub` file) into the text field, then click the "Add key" button to confirm.
+1. Click the "Add key" button. Paste the text of the **SSH public key** you created in step 4 (from the `.pub` file) into the text field, then click the "Add key" button to confirm.
 
 ## Step 5: On Terraform Cloud, Request Access and Add an SSH Private Key
 
-1. Go back to your Terraform Cloud browser tab and click the "Connect organization `<NAME>`" button on the VCS Provider page.
-
-    ![Terraform Cloud screenshot: the connect organization button](./images/tfe-connect-orgname.png)
-
-    This takes you to a page on your Bitbucket Server instance, asking if you want to authorize Terraform Cloud. Double-check that you're logged in as the user account Terraform Cloud will be using, and not as a Bitbucket administrator.
-
-    ![Bitbucket Server screenshot: the authorization page](./images/bitbucket-server-authorize.png)
-
-2. Click the "Allow" button. This returns you to Terraform Cloud's VCS Provider page, where the Bitbucket Server client's information has been updated.
-
-    If this results in a 500 error, it usually means Terraform Cloud was unable to reach your Bitbucket Server instance.
-
-3. Click the "Add a private SSH key" link. A large text field will appear. Paste the text of the **SSH private key** you created in step 4, and click the "Add SSH Key" button.
+1. Click the "Add a private SSH key" link. A large text field will appear. Paste the text of the **SSH private key** you created in step 3, and click the "Add SSH Key" button.
 
     ![Terraform Cloud screenshot: Pasting an SSH private key](./images/bitbucket-server-tfe-add-private-key.png)
-
 
 ## Finished
 
 At this point, Bitbucket Server access for Terraform Cloud is fully configured, and you can create Terraform workspaces based on your organization's shared repositories.
-

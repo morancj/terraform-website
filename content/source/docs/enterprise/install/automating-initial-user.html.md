@@ -24,14 +24,14 @@ replicated admin --tty=0 retrieve-iact
 If you want to create the initial user in an automated deployment script, run a command like the following instead so that you can capture the IACT:
 
 ```shell
-initial_token=$(replicated admin --tty=0 retrieve-iact)
+initial_token=$(replicated admin retrieve-iact | tr -d '\r')
 ```
 
-The command outputs only the complete IACT, which facilitates use in automation.
+The command outputs the complete IACT with the carriage return character removed, which facilitates use in automation.
 
 ### Via API
 
-The option `iact_subnet_list` can be set to a cidr mask that will allow clients in that address range to query the retrieval API directly. This allows installers the ability to create the installation and then immediately request the IACT token without running a command on the installation machine.
+The option `iact_subnet_list` can be set to a CIDR mask that will allow clients in that address range to query the retrieval API directly. This allows installers the ability to create the installation and then immediately request the IACT token without running a command on the installation machine.
 
 ~> NOTE: `iact_subnet_list` has no default value, so if unset, this no clients will be able to request the IACT token via the API.
 

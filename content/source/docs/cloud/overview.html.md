@@ -1,18 +1,20 @@
 ---
 layout: "cloud"
-page_title: "Overview of Features - Terraform Cloud"
+page_title: "Overview of Features - Terraform Cloud and Terraform Enterprise"
 ---
 
 # Overview of Terraform Cloud Features
 
-[cli]: /docs/cli-index.html
-[remote backend]: /docs/backends/types/remote.html
+[cli]: /docs/cli/index.html
+[remote backend]: /docs/language/settings/backends/remote.html
 [speculative plans]: ./run/index.html#speculative-plans
-[remote_state]: /docs/providers/terraform/d/remote_state.html
-[outputs]: /docs/configuration/outputs.html
-[modules]: /docs/modules/index.html
+[remote_state]: /docs/language/state/remote-state-data.html
+[outputs]: /docs/language/values/outputs.html
+[modules]: /docs/language/modules/develop/index.html
 [terraform enterprise]: /docs/enterprise/index.html
 
+
+> **Hands-on:** Try the [Get Started — Terraform Cloud](https://learn.hashicorp.com/collections/terraform/cloud-get-started?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS) collection on HashiCorp Learn.
 
 Terraform Cloud is a platform that performs Terraform runs to provision infrastructure, either on demand or in response to various events. Unlike a general-purpose continuous integration (CI) system, it is deeply integrated with Terraform's workflows and data, which allows it to make Terraform significantly more convenient and powerful.
 
@@ -104,7 +106,7 @@ In addition to providing powerful extensions to the core Terraform workflow, Ter
 
 ### Full API
 
-Nearly all of Terraform Cloud's features are available in [its API](./api/index.html), which means other services can create or configure workspaces, upload configurations, start Terraform runs, and more. There's even [a Terraform provider based on the API](/docs/providers/tfe/index.html), so you can manage your Terraform Cloud teams and workspaces as a Terraform configuration.
+Nearly all of Terraform Cloud's features are available in [its API](./api/index.html), which means other services can create or configure workspaces, upload configurations, start Terraform runs, and more. There's even [a Terraform provider based on the API](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs), so you can manage your Terraform Cloud teams and workspaces as a Terraform configuration.
 
 - More info: [API](./api/index.html)
 

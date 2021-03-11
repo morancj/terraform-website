@@ -1,6 +1,6 @@
 ---
 layout: "cloud"
-page_title: "Defining Policies - Sentinel - Terraform Cloud"
+page_title: "Defining Policies - Sentinel - Terraform Cloud and Terraform Enterprise"
 ---
 
 # Defining Policies
@@ -91,7 +91,7 @@ This example function does several useful things while finding resources:
   `resources` namespace is more convenient, but it only reveals resources from
   the root module.
 - It iterates over the named resources and [resource
-  instances](/docs/configuration/resources.html#count-multiple-resource-instances)
+  instances](/docs/language/expressions/references.html#resources)
   found in each module, starting with `tfplan.module(path).resources[type]`
   which is a series of nested maps keyed by resource names and instance counts.
 - It uses the Sentinel [`else`
@@ -103,7 +103,7 @@ This example function does several useful things while finding resources:
   evaluate rules.
 - It computes an `address` variable for each resource instance and uses this as
   the key in the `resources` map. This allows writers of Sentinel policies to
-  print the full [address](/docs/internals/resource-addressing.html) of each
+  print the full [address](/docs/cli/state/resource-addressing.html) of each
   resource instance that violate a policy, using the same address format used in
   plan and apply logs. Doing this tells users who see violation messages exactly
   which resources they need to modify in their Terraform code to comply with the

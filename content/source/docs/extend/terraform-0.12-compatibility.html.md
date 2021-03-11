@@ -45,7 +45,7 @@ to the latest Terraform SDK involves upgrading all of the dependencies on
 Go packages with the prefix `github.com/hashicorp/terraform/` to a version
 with support for the new provider protocol.
 
-~> **NOTE:** The SDK is now its own Go module. Existing providers should upgrade to at least v0.12.7 before [switching to the standalone SDK](/docs/extend/plugin-sdk.html). This is to isolate issues between Terraform SDK v0.11 and v0.12, and the standalone SDK. New providers should vendor the standalone SDK from the start.
+~> **NOTE:** The SDK is now its own Go module. Existing providers should upgrade to at least v0.12.7 before [switching to the standalone SDK](/docs/extend/guides/v1-upgrade-guide.html). This is to isolate issues between Terraform SDK v0.11 and v0.12, and the standalone SDK. New providers should vendor the standalone SDK from the start.
 
 Terraform Core is now using
 [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency
@@ -93,7 +93,7 @@ lots of details on the common situations in
 
 If you see an error you're not sure how to resolve, it may help to copy the
 configuration snippet into a separate `.tf` file in a new directory and use
-[the `terraform 0.12upgrade` command](/docs/commands/0.12upgrade.html)
+[the `terraform 0.12upgrade` command](/docs/cli/commands/0.12upgrade.html)
 to see what changes Terraform itself proposes.
 
 One particular situation that we've seen crop up a lot in provider upgrades
@@ -254,7 +254,7 @@ Terraform v0.12 does not support using `Computed` with a collection of
 sub-resources, but to avoid breaking existing uses of that mechanism for the
 reason described above, we introduced a compromise which you can read more
 about from the end-user perspective in
-[Attributes as Blocks](/docs/configuration/attr-as-blocks.html).
+[Attributes as Blocks](/docs/language/attr-as-blocks.html).
 
 If you have an existing `Computed` attribute that has `Elem: *schema.Resource`
 and which expects to treat explicit assignment of an empty list differently

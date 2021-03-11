@@ -19,28 +19,28 @@ This guide will walk through both of these steps.
 Snapshots are taken on the Terraform Enterprise instance. That instance can
 have two types of data on it:
 
-- Terraform Cloud application data: The core product data such as
+- Terraform Enterprise application data: The core product data such as
 run history, configuration history, state history. This data
 changes frequently.
 - Terraform Enterprise installer data: The data used
 to configure Terraform Enterprise itself such as installation type, database
 connection settings, hostname. This data rarely changes.
 
-In demo mode, both application data and installer data are
-stored on the Terraform Enterprise instance. In mounted disk and external services mode, only
+In *Demo* mode, both application data and installer data are
+stored on the Terraform Enterprise instance. In *Mounted Disk* and *External Services* modes, only
 installer data is stored on the instance. Application data
 is stored in the mounted disk or in an external PostgreSQL instance.
 
-Automated snapshots are more effective when using mounted disk or
-external services as the amount of backed up data is smaller and
+Automated snapshots are more effective when using *Mounted Disk* or
+*External Services* as the amount of backed up data is smaller and
 less risky.
 
 Snapshots are configured in the dashboard under `Console Settings`,
 in the `Snapshot & Restore` section. We suggest you select
 `Enable Automatic Scheduled Snapshots`. For the interval, it depends
-on the mode of operation you're using. If you're in Demo mode,
+on the mode of operation you're using. If you're in *Demo* mode,
 one hour is recommended as that will minimize the data loss to one
-hour only. For Mounted Disk or External Services, Daily is recommended
+hour only. For *Mounted Disk* or *External Services*, Daily is recommended
 as the snapshots contain only configuration data, not application data.
 
 ## Restore a snapshot in a new Terraform Enterprise instance
@@ -86,6 +86,13 @@ apt-get install -y jq
 # Run the installer.
 
 curl https://install.terraform.io/ptfe/stable | bash -s fast-timeouts
+
+# Wait for replicated to start before proceeding
+until replicatedctl system status --template '{{and (eq .Replicated "ready") (eq .Retraced "ready")}}' | grep -q true; do
+  sleep 1
+  echo "Replicated is not yet ready."
+done
+echo "Replicated is ready."
 
 # This retrieves a list of all the snapshots currently available.
 replicatedctl snapshot ls $access -o json > /tmp/snapshots.json
@@ -141,6 +148,13 @@ apt-get install -y jq
 
 curl https://install.terraform.io/ptfe/stable | bash -s fast-timeouts
 
+# Wait for replicated to start before proceeding
+until replicatedctl system status --template '{{and (eq .Replicated "ready") (eq .Retraced "ready")}}' | grep -q true; do
+  sleep 1
+  echo "Replicated is not yet ready."
+done
+echo "Replicated is ready."
+
 # This retrieves a list of all the snapshots currently available.
 replicatedctl snapshot ls $access -o json > /tmp/snapshots.json
 
@@ -182,7 +196,7 @@ set -e -u -o pipefail
 
 path=absolute_path_to_directory_of_snapshots
 
-access="--store local --path '$path'"
+access="--store local --path $path"
 
 # jq is used by this script, so install it. For other Linux distros, either preinstall jq
 # and remove these lines, or change to the mechanism your distro uses to install jq.
@@ -193,6 +207,13 @@ apt-get install -y jq
 # Run the installer.
 
 curl https://install.terraform.io/ptfe/stable | bash -s fast-timeouts
+
+# Wait for replicated to start before proceeding
+until replicatedctl system status --template '{{and (eq .Replicated "ready") (eq .Retraced "ready")}}' | grep -q true; do
+  sleep 1
+  echo "Replicated is not yet ready."
+done
+echo "Replicated is ready."
 
 # This retrieves a list of all the snapshots currently available.
 replicatedctl snapshot ls $access -o json > /tmp/snapshots.json

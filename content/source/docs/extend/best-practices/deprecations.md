@@ -31,15 +31,13 @@ The recommended process for removing an attribute from a data source or resource
 1. Add `Deprecated` in the attribute schema definition. After an operator upgrades to this version, they will be shown a warning with the message provided when using the attribute, but the Terraform run will still complete.
 1. Ensure the changelog has an entry noting the deprecation.
 1. Release a `MINOR` version with the deprecation.
-1. In the next `MAJOR` version, remove all code associated with the attribute except for its schema definition.
-1. Replace `Deprecated` with `Removed` in the attribute schema definition. Add `Computed: true` if not present. Ensure all `ConflictsWith`, `DiffSuppressFunc`, `ForceNew`, and `Set` are removed. After an operator upgrades to this version, they will be shown an error with the message provided when using the attribute and their plans should show no updates related to removing this attribute.
+1. In the next `MAJOR` version, remove all code associated with the attribute including the schema definition.
 1. Ensure the changelog has an entry noting the removal.
 1. Release the `MAJOR` version.
-1. In the next `MAJOR` version afterwards, completely remove the attribute schema definition. No changelog is necessary.
 
 ## Provider Attribute Rename
 
-When renaming an attribute from one name to another, it is important to keep backwards compatibility with both existing Terraform configurations and the [Terraform state](/docs/state/index.html) while operators migrate. To accomplish this, there will be some duplicated logic to support both attributes until the next `MAJOR` release. Once both attributes are appropriately handled, the process for deprecating and removing the old attribute is the same as noted in the [Provider Attribute Removal section](#provider-attribute-removal).
+When renaming an attribute from one name to another, it is important to keep backwards compatibility with both existing Terraform configurations and the [Terraform state](/docs/language/state/index.html) while operators migrate. To accomplish this, there will be some duplicated logic to support both attributes until the next `MAJOR` release. Once both attributes are appropriately handled, the process for deprecating and removing the old attribute is the same as noted in the [Provider Attribute Removal section](#provider-attribute-removal).
 
 The procedure for renaming an attribute depends on what type of attribute it is:
 

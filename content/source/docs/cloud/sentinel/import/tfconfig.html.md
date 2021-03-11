@@ -1,6 +1,6 @@
 ---
 layout: "cloud"
-page_title: "tfconfig - Imports - Sentinel - Terraform Cloud"
+page_title: "tfconfig - Imports - Sentinel - Terraform Cloud and Terraform Enterprise"
 description: |-
   The tfconfig import provides access to a Terraform configuration.
 ---
@@ -302,6 +302,8 @@ The root-level `data`, `modules`, `providers`, `resources`, and `variables` keys
 all alias to their corresponding namespaces within the module namespace, loaded
 for the root module. They are the equivalent of running `module([]).KEY`.
 
+<a id="namespace-resources"></a>
+
 ## Namespace: Resources/Data Sources
 
 The **resource namespace** is a namespace _type_ that applies to both resources
@@ -317,7 +319,7 @@ based on type and name. Some examples of multi-level access are below:
 
 * To fetch all `aws_instance` resources within the root module, you can specify
   `tfconfig.resources.aws_instance`. This would give you a map of resource
-  namespaces indexed off of the names of each resource (`foo`, `bar`, and so
+  namespaces indexed from the names of each resource (`foo`, `bar`, and so
   on).
 * To fetch all resources within the root module, irrespective of type, use
   `tfconfig.resources`. This is indexed by type, as shown above with
@@ -381,7 +383,7 @@ main = rule {
 }
 ```
 
-<a id="resources-value-provisioners" />
+<a id="resources-value-references" />
 
 ### Value: `references`
 
@@ -412,7 +414,7 @@ data sources cannot actually have provisioners.
 The data within a provisioner can be inspected via the returned [provisioner
 namespace](#namespace-provisioners).
 
-[ref-tf-provisioners]: /docs/provisioners/index.html
+[ref-tf-provisioners]: /docs/language/resources/provisioners/syntax.html
 
 ## Namespace: Provisioners
 
@@ -474,7 +476,7 @@ See the [documentation on `references`](#references-with-terraform-0-12) for mor
 
 * **Value Type:** String.
 
-The `type` value within the [provisioner namespace](#namespace-provisioner)
+The `type` value within the [provisioner namespace](#namespace-provisioners)
 represents the type of the specific provisioner.
 
 As an example, in the following resource block:
@@ -636,7 +638,7 @@ represents any _explicit_ dependencies for this output. For more information,
 see the [depends_on output setting][ref-depends_on] within the general Terraform
 documentation.
 
-[ref-depends_on]: /docs/configuration/outputs.html#depends_on
+[ref-depends_on]: /docs/language/values/outputs.html#depends_on
 
 As an example, given the following output declaration block:
 
@@ -800,7 +802,7 @@ represents all declared [non-default provider
 instances][ref-tf-provider-instances] for a specific provider type, indexed by
 their specific alias.
 
-[ref-tf-provider-instances]: /docs/configuration/providers.html#multiple-provider-instances
+[ref-tf-provider-instances]: /docs/language/providers/configuration.html#alias-multiple-provider-configurations
 
 The return type is a provider namespace with the data for the instance in
 question loaded. The `alias` key will not be available within this namespace.

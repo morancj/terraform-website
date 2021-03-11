@@ -1,6 +1,6 @@
 ---
 layout: "cloud"
-page_title: "Teams - API Docs - Terraform Cloud"
+page_title: "Teams - API Docs - Terraform Cloud and Terraform Enterprise"
 ---
 
 [200]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
@@ -26,6 +26,10 @@ page_title: "Teams - API Docs - Terraform Cloud"
 
 The Teams API is used to create, edit, and destroy teams as well as manage a team's organization-level permissions. The [Team Membership API](./team-members.html) is used to add or remove users from a team. Use the [Team Access API](./team-access.html) to associate a team with privileges on an individual workspace.
 
+Any member of an organization can view visible teams and any secret teams they are a member of. Only organization owners can modify teams or view the full set of secret teams. The organization token and the owners team token can act as an owner on these endpoints. ([More about permissions.](/docs/cloud/users-teams-organizations/permissions.html))
+
+[permissions-citation]: #intentionally-unused---keep-for-maintainers
+
 ## Organization Membership
 
 -> **Note:** Users must be invited to join organizations before they can be added to teams. See [the Organization Memberships API documentation](./organization-memberships.html) for more information. Invited users who have not yet accepted will not appear in Teams API responses.
@@ -37,6 +41,15 @@ The Teams API is used to create, edit, and destroy teams as well as manage a tea
 Parameter            | Description
 ---------------------|------------
 `:organization_name` | The name of the organization to list teams from.
+
+### Query Parameters
+
+This endpoint supports pagination [with standard URL query parameters](./index.html#query-parameters); remember to percent-encode `[` as `%5B` and `]` as `%5D` if your tooling doesn't automatically encode URLs.
+
+Parameter      | Description
+---------------|------------
+`page[number]` | **Optional.** If omitted, the endpoint will return the first page.
+`page[size]`   | **Optional.** If omitted, the endpoint will return 20 runs per page.
 
 ### Sample Request
 
